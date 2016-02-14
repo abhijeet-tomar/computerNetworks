@@ -142,6 +142,7 @@ public class ClientHome extends javax.swing.JFrame {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
 
         Client cli = myFriends.get(myFriends.indexOf(new Client(friendsList.getSelectedValue())));
+        System.out.println(myFriends);
         chatWindow x = new chatWindow(cli.name);
         if(chats.indexOf(x) != -1){
             JOptionPane.showMessageDialog(this, "Chat already in progress", "Error", JOptionPane.ERROR_MESSAGE);
@@ -156,8 +157,10 @@ public class ClientHome extends javax.swing.JFrame {
         }
         cli.connection = sock;
         chats.add(x);
+        System.out.println("Started chat window for " + cli.name);
         ClientThread t = new ClientThread(sock,cli.name, x);
         Thread tx = new Thread(t);
+        tx.setName("Chat with " + cli.name);
         x.setTitle(cli.name);
         x.setVisible(true);
         tx.start();

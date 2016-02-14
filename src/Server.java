@@ -99,7 +99,10 @@ class Client implements Runnable, Comparable<Client> {
                     port = Integer.parseInt(sc.nextLine());
                     System.out.println("Logged in : " + this);
                     for (int i = 0; i < Server.allClients.size(); i++) {
-                        out.println(Server.allClients.get(i));
+                        Client xx = Server.allClients.get(i);
+                        if(xx == this)
+                            continue;
+                        out.println(xx);
                     }
                     out.flush();
                 } else if (code == 2) {

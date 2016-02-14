@@ -3,9 +3,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Iterator;
 import java.util.Scanner;
-import javax.swing.DefaultListModel;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -35,6 +33,7 @@ public class ClientThread implements Runnable {
     ClientThread(Socket sock, String name, ClientHome client) {
         this.sock = sock;
         this.name = name;
+        this.client = client;
         server = true;
     }
 
@@ -62,16 +61,12 @@ public class ClientThread implements Runnable {
                 int port = Integer.parseInt(arr[2]);
                 Client x = new Client(name, host, port);
                 ClientHome.myFriends.add(x);
-                System.out.println(ClientHome.myFriends);
-                DefaultListModel m = new DefaultListModel();
-                for (Iterator<Client> it = ClientHome.myFriends.iterator(); it.hasNext();) {
-                    Client xx = it.next();
-                    m.addElement(xx.name);
-                }
-                client.friendsList.setModel(m);
+                client.m.addElement(x.name);
             }
         } else {
             chat.out = out;
+            out.println(name);
+            out.flush();
             while (sc.hasNext()) {
                 String msg = sc.nextLine();
                 chat.chatHistoryTA.append(name + " : " + msg + "\n");
@@ -81,9 +76,11 @@ public class ClientThread implements Runnable {
 
 }
 
-class ClientClientThread {
+class ClientClientThread implements Runnable{
 
-    void startServer(ServerSocket server) {
+    static ServerSocket server;
+    @Override
+    public void run() {
         Scanner sc;
         PrintWriter out;
         while (true) {
@@ -101,10 +98,12 @@ class ClientClientThread {
             }
             String name = sc.nextLine();
             int idx = ClientHome.myFriends.indexOf(new Client(name));
-            if (idx == -1) {
-                System.out.println("Message from non friend. Terminated!");
-                continue;
-            }
+//            if (idx == -1) {
+//                System.out.println("Message from non friend. Terminated!");
+//                System.out.println("msg : " + name);
+//                System.out.println("Current list : " + ClientHome.myFriends);
+//                continue;
+//            }
             Client c = ClientHome.myFriends.get(idx);
 
             chatWindow x = new chatWindow(c.name);
@@ -118,6 +117,7 @@ class ClientClientThread {
             x.setTitle(c.name);
             x.setVisible(true);
             Thread tx = new Thread(t);
+            tx.setName("Chat with " + c.name);
             tx.start();
         }
     }

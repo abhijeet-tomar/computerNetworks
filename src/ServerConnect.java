@@ -248,10 +248,16 @@ public class ServerConnect extends javax.swing.JFrame {
         }
         out.println(port);
         out.flush();
+        ClientClientThread.server = server;
+        Thread cct = new Thread(new ClientClientThread());
+        cct.setName("server thread of client " + username);
+        System.out.println("Started server thread of client " + username);
+        cct.start();
         ClientHome cli = new ClientHome();
-        cli.setTitle("username");
+        cli.setTitle(username);
         ClientThread th = new ClientThread(sock,username,cli);
         Thread t = new Thread(th);
+        t.setName("Client Thread " + username);
         t.start();
         cli.setVisible(true);
         this.dispose();
