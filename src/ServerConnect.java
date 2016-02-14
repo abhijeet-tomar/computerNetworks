@@ -1,4 +1,6 @@
 
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
@@ -26,12 +28,16 @@ public class ServerConnect extends javax.swing.JFrame {
      */
     public ServerConnect() {
         initComponents();
+        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+        this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
         usernameTF.setEnabled(false);
         passwordTF.setEnabled(false);
         jButton3.setEnabled(false);
         jButton2.setEnabled(false);
         hostTF.requestFocus();
         this.getRootPane().setDefaultButton(jButton1);
+//        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+//        this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
     }
     
 

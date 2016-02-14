@@ -1,4 +1,6 @@
 
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,7 +27,10 @@ public class ClientHome extends javax.swing.JFrame {
      */
     public ClientHome() {
         initComponents();
+        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+        this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
         this.friendsList.setModel(m);
+        
     }
 
     /**

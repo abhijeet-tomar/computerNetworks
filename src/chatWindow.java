@@ -1,4 +1,6 @@
 
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.io.PrintWriter;
 
 /*
@@ -19,11 +21,15 @@ public class chatWindow extends javax.swing.JFrame {
      */
     public chatWindow() {
         initComponents();
+        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+        this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
     }
     public chatWindow(String name) {
         initComponents();
         this.name = name;
         this.getRootPane().setDefaultButton(jButton1);
+        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+        this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
     }
     @Override
     public boolean equals(Object o) {
@@ -53,7 +59,7 @@ public class chatWindow extends javax.swing.JFrame {
         chatBoxTF = new javax.swing.JTextField();
         jButton1 = new javax.swing.JButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosed(java.awt.event.WindowEvent evt) {
                 formWindowClosed(evt);
@@ -103,7 +109,9 @@ public class chatWindow extends javax.swing.JFrame {
         out.println(chatBoxTF.getText());
         out.flush();
         System.out.println("Sent message : " + chatBoxTF.getText());
-        this.chatHistoryTA.append("Me : " + chatBoxTF.getText());
+        this.chatHistoryTA.append("Me : " + chatBoxTF.getText() + "\n");
+        chatBoxTF.setText("");
+        chatBoxTF.requestFocus();
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
