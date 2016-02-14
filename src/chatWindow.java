@@ -23,6 +23,7 @@ public class chatWindow extends javax.swing.JFrame {
     public chatWindow(String name) {
         initComponents();
         this.name = name;
+        this.getRootPane().setDefaultButton(jButton1);
     }
     @Override
     public boolean equals(Object o) {
@@ -59,6 +60,7 @@ public class chatWindow extends javax.swing.JFrame {
             }
         });
 
+        chatHistoryTA.setEditable(false);
         chatHistoryTA.setColumns(20);
         chatHistoryTA.setRows(5);
         jScrollPane1.setViewportView(chatHistoryTA);
@@ -100,6 +102,8 @@ public class chatWindow extends javax.swing.JFrame {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         out.println(chatBoxTF.getText());
         out.flush();
+        System.out.println("Sent message : " + chatBoxTF.getText());
+        this.chatHistoryTA.append("Me : " + chatBoxTF.getText());
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed

@@ -62,6 +62,15 @@ public class ServerConnect extends javax.swing.JFrame {
 
         jLabel2.setText("Port");
 
+        hostTF.setText("localhost");
+        hostTF.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                hostTFActionPerformed(evt);
+            }
+        });
+
+        portTF.setText("5687");
+
         jLabel3.setText("Username");
 
         jButton1.setText("Connect");
@@ -226,6 +235,7 @@ public class ServerConnect extends javax.swing.JFrame {
         String resp = sc.nextLine();
         if(resp.equals("true")){
             JOptionPane.showMessageDialog(this, "Login Successful", "Welcome", JOptionPane.INFORMATION_MESSAGE);
+            ClientHome.clientUsername = username;
         } else {
             JOptionPane.showMessageDialog(this, "Login failed", "Error", JOptionPane.ERROR_MESSAGE);
             return;
@@ -254,7 +264,7 @@ public class ServerConnect extends javax.swing.JFrame {
         System.out.println("Started server thread of client " + username);
         cct.start();
         ClientHome cli = new ClientHome();
-        cli.setTitle(username);
+        cli.setTitle(username + " - chat Box");
         ClientThread th = new ClientThread(sock,username,cli);
         Thread t = new Thread(th);
         t.setName("Client Thread " + username);
@@ -262,6 +272,10 @@ public class ServerConnect extends javax.swing.JFrame {
         cli.setVisible(true);
         this.dispose();
     }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void hostTFActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_hostTFActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_hostTFActionPerformed
 
     /**
      * @param args the command line arguments

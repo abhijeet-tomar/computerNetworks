@@ -65,8 +65,9 @@ public class ClientThread implements Runnable {
             }
         } else {
             chat.out = out;
-            out.println(name);
+            out.println(ClientHome.clientUsername);
             out.flush();
+            System.out.println("Sent Message : " + ClientHome.clientUsername);
             while (sc.hasNext()) {
                 String msg = sc.nextLine();
                 chat.chatHistoryTA.append(name + " : " + msg + "\n");
@@ -98,12 +99,12 @@ class ClientClientThread implements Runnable{
             }
             String name = sc.nextLine();
             int idx = ClientHome.myFriends.indexOf(new Client(name));
-//            if (idx == -1) {
-//                System.out.println("Message from non friend. Terminated!");
-//                System.out.println("msg : " + name);
-//                System.out.println("Current list : " + ClientHome.myFriends);
-//                continue;
-//            }
+            if (idx == -1) {
+                System.out.println("Message from non friend. Terminated!");
+                System.out.println("msg : " + name);
+                System.out.println("Current list : " + ClientHome.myFriends);
+                continue;
+            }
             Client c = ClientHome.myFriends.get(idx);
 
             chatWindow x = new chatWindow(c.name);
@@ -114,7 +115,7 @@ class ClientClientThread implements Runnable{
 
             ClientHome.chats.add(x);
             ClientThread t = new ClientThread(s, c.name, x);
-            x.setTitle(c.name);
+            x.setTitle("Your chat with " + c.name);
             x.setVisible(true);
             Thread tx = new Thread(t);
             tx.setName("Chat with " + c.name);

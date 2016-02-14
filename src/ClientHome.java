@@ -17,6 +17,7 @@ import javax.swing.JOptionPane;
  * @author aadi
  */
 public class ClientHome extends javax.swing.JFrame {
+    static String clientUsername;
     static List<Client> myFriends = Collections.synchronizedList(new ArrayList());
     static List<chatWindow> chats = Collections.synchronizedList(new ArrayList());
     /**
@@ -161,7 +162,7 @@ public class ClientHome extends javax.swing.JFrame {
         ClientThread t = new ClientThread(sock,cli.name, x);
         Thread tx = new Thread(t);
         tx.setName("Chat with " + cli.name);
-        x.setTitle(cli.name);
+        x.setTitle("Your chat with " + cli.name);
         x.setVisible(true);
         tx.start();
     }//GEN-LAST:event_jButton1ActionPerformed

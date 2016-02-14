@@ -98,11 +98,11 @@ class Client implements Runnable, Comparable<Client> {
                     host = connection.getInetAddress().getHostAddress();
                     port = Integer.parseInt(sc.nextLine());
                     System.out.println("Logged in : " + this);
-                    for (int i = 0; i < Server.allClients.size(); i++) {
-                        Client xx = Server.allClients.get(i);
-                        if(xx == this)
-                            continue;
-                        out.println(xx);
+                    for (int i = 0; i < Server.friends.size(); i++) {
+                        String xx = Server.friends.get(i);
+                        String[] arr = xx.split("\t");
+                        if(arr[0].equals(name));
+                        out.println(Server.allClients.get(Server.allClients.indexOf(new Client(arr[1]))));
                     }
                     out.flush();
                 } else if (code == 2) {
@@ -118,6 +118,8 @@ class Client implements Runnable, Comparable<Client> {
                     x.MSG(this.toString());
                     out.println(x);
                     out.flush();
+                    Server.friends.add(name + "\t" + x.name);
+                    Server.friends.add(x.name + "\t" + name);
                 } else if (code == 3) {
                     System.out.println("New logout request");
                     //logout
@@ -172,6 +174,7 @@ public class Server {
 //    Collections.synchronizedList(new ArrayList<Client>());
 
     static List<Client> allClients = Collections.synchronizedList(new ArrayList());
+    static List<String> friends = Collections.synchronizedList(new ArrayList());
 
     public static void main(String[] args) {
         final int port = 5687;
