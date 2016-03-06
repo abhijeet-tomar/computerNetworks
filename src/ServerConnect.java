@@ -34,8 +34,8 @@ public class ServerConnect extends javax.swing.JFrame {
         passwordTF.setEnabled(false);
         jButton3.setEnabled(false);
         jButton2.setEnabled(false);
-        hostTF.requestFocus();
         this.getRootPane().setDefaultButton(jButton1);
+        hostTF.requestFocus();
 //        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 //        this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
     }
@@ -271,7 +271,7 @@ public class ServerConnect extends javax.swing.JFrame {
         cct.start();
         ClientHome cli = new ClientHome();
         cli.setTitle(username + " - chat Box");
-        ClientThread th = new ClientThread(sock,username,cli);
+        ClientThread th = new ClientThread(sock,username,cli,username);
         Thread t = new Thread(th);
         t.setName("Client Thread " + username);
         t.start();

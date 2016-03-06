@@ -1,0 +1,10 @@
+aadi	sunny
+sunny	aadi
+ravi	rahul
+rahul	ravi
+ravi	aadi
+aadi	ravi
+aadi	rahul
+rahul	aadi
+sunny	rahul
+rahul	sunny

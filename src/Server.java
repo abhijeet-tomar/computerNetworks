@@ -116,8 +116,14 @@ class Client implements Runnable, Comparable<Client> {
                         String xx = Server.friends.get(i);
                         String[] arr = xx.split("\t");
                         if (arr[0].equals(x.name)){
-                            System.out.println("Got true for " + arr[0] + " and " + x.name);
+//                            System.out.println("Got true for " + arr[0] + " and " + x.name);
                             out.println(Server.allClients.get(Server.allClients.indexOf(new Client(arr[1]))));
+                        } else if (arr[1].equals(x.name)){
+                            Client y = new Client(arr[0]);
+                            int idx2 = Server.allClients.indexOf(y);
+                            y = Server.allClients.get(idx2);
+                            y.MSG(x.toString());
+                            System.out.println("Updated " + y.toString() + " about " + x.toString());
                         }
 
                     }

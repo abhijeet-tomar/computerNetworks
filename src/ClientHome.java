@@ -13,24 +13,28 @@ import javax.swing.JOptionPane;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 /**
  *
  * @author aadi
  */
 public class ClientHome extends javax.swing.JFrame {
+
     static String clientUsername;
     static List<Client> myFriends = Collections.synchronizedList(new ArrayList());
     static List<chatWindow> chats = Collections.synchronizedList(new ArrayList());
+
     /**
      * Creates new form ClientHome
      */
     public ClientHome() {
         initComponents();
         Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-        this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
+        this.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
         this.friendsList.setModel(m);
-        
+//        m.addElement("aadi");
+//        m.addElement("b");
+//        m.addElement("sad");
+//        m.addElement("happy");
     }
 
     /**
@@ -147,34 +151,82 @@ public class ClientHome extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
 
-        Client cli = myFriends.get(myFriends.indexOf(new Client(friendsList.getSelectedValue())));
-        System.out.println(myFriends);
-        chatWindow x = new chatWindow(cli.name);
-        if(chats.indexOf(x) != -1){
-            JOptionPane.showMessageDialog(this, "Chat already in progress", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
+        List select = friendsList.getSelectedValuesList();
+        if (select.size() == 1) {
+            // single user chat
+            Client cli = myFriends.get(myFriends.indexOf(new Client((String) select.get(0))));
+            System.out.println(myFriends);
+            chatWindow x = new chatWindow(cli.name);
+            if (chats.indexOf(x) != -1) {
+                JOptionPane.showMessageDialog(this, "Chat already in progress", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            Socket sock;
+            try {
+                sock = new Socket(cli.host, cli.port);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, cli.name + "is Offline", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            cli.connection = sock;
+            chats.add(x);
+            System.out.println("Started chat window for " + cli.name);
+            ClientThread t = new ClientThread(sock, cli.name, x, ClientHome.clientUsername);
+            Thread tx = new Thread(t);
+            tx.setName("Chat with " + cli.name);
+            x.setTitle("Your chat with " + cli.name);
+            x.setVisible(true);
+            tx.start();
+        } else if (select.size() > 1) {
+            // group chat
+            System.out.println(select);
+            select.add(clientUsername);
+            Collections.sort(select);
+//             System.out.println(select);
+            String name = "";
+            for (int i = 0; i < select.size(); i++) {
+                name = name + (String) select.get(i) + " ";
+            }
+            Client x = new Client(name);
+            int idx = myFriends.indexOf(x);
+            if (idx != -1) {
+                x = myFriends.get(idx);
+            } else {
+                myFriends.add(x);
+            }
+            chatWindow win = new chatWindow(name);
+            if (chats.indexOf(x) != -1) {
+                JOptionPane.showMessageDialog(this, "Chat already in progress", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            win.setTitle("Your chat with " + name);
+            for (int i = 0; i < select.size(); i++) {
+                String temps = (String) select.get(i);
+                if (temps == ClientHome.clientUsername) {
+                    continue;
+                }
+                Client temp = new Client(temps);
+                idx = myFriends.indexOf(temp);
+
+                temp = myFriends.get(idx);
+                try {
+                    Socket sock = new Socket(temp.host, temp.port);
+                    ClientThread t = new ClientThread(sock, temp.name, win, name);
+                    Thread th = new Thread(t);
+                    th.start();
+                } catch (Exception e) {
+                    continue;
+                }
+            }
+            win.setVisible(true);
         }
-        Socket sock;
-        try{
-            sock = new Socket(cli.host, cli.port);
-        } catch(Exception e){
-            JOptionPane.showMessageDialog(this, cli.name + "is Offline", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        cli.connection = sock;
-        chats.add(x);
-        System.out.println("Started chat window for " + cli.name);
-        ClientThread t = new ClientThread(sock,cli.name, x);
-        Thread tx = new Thread(t);
-        tx.setName("Chat with " + cli.name);
-        x.setTitle("Your chat with " + cli.name);
-        x.setVisible(true);
-        tx.start();
+
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         String username = usernameTF.getText();
-        if(username == null || username.equals("")){
+        if (username == null || username.equals("")) {
             JOptionPane.showMessageDialog(this, "Improper username", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -217,7 +269,7 @@ public class ClientHome extends javax.swing.JFrame {
             }
         });
     }
-   public DefaultListModel m = new DefaultListModel();
+    public DefaultListModel m = new DefaultListModel();
     // Variables declaration - do not modify//GEN-BEGIN:variables
     public javax.swing.JList<String> friendsList;
     public javax.swing.JButton jButton1;

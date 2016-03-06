@@ -2,6 +2,9 @@
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -15,7 +18,7 @@ import java.io.PrintWriter;
  */
 public class chatWindow extends javax.swing.JFrame {
     String name;
-    PrintWriter out;
+    List<PrintWriter> clients;
     /**
      * Creates new form chatWindow
      */
@@ -27,6 +30,7 @@ public class chatWindow extends javax.swing.JFrame {
     public chatWindow(String name) {
         initComponents();
         this.name = name;
+        clients = Collections.synchronizedList(new ArrayList());
         this.getRootPane().setDefaultButton(jButton1);
         Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
         this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
@@ -106,12 +110,16 @@ public class chatWindow extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        out.println(chatBoxTF.getText());
-        out.flush();
-        System.out.println("Sent message : " + chatBoxTF.getText());
+        for (int i = 0; i < clients.size(); i++) {
+            PrintWriter out = clients.get(i);
+            out.println(ClientHome.clientUsername + " : " + chatBoxTF.getText());
+            out.flush();
+            System.out.println("Message sent : " + ClientHome.clientUsername + " : " + chatBoxTF.getText());
+        }
         this.chatHistoryTA.append("Me : " + chatBoxTF.getText() + "\n");
         chatBoxTF.setText("");
         chatBoxTF.requestFocus();
+        
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
