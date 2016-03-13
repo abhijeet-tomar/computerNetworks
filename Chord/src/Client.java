@@ -41,8 +41,9 @@ class Node implements Runnable {
      */
     public static boolean belongTo(int a, int b, int c, int mode) {
         ArrayList<Integer> arr = new ArrayList<>();
+
         for (int i = a + 1; i % 8 != b; i++) {
-            arr.add(i);
+            arr.add(i%8);
         }
         switch (mode) {
             case 00:
@@ -94,7 +95,10 @@ class Node implements Runnable {
         for (int i = 0; i < 3; i++) {
             FingerTable[i] = new finger();
         }
+        FingerTable[1].finger.ID = -1;
+        FingerTable[2].finger.ID = -1;
         setSuccessor(m.remotefindSuccessor(this.ID + ""));
+        
     }
 
     synchronized void stablize() {
@@ -227,6 +231,9 @@ class Node implements Runnable {
         int id = Integer.parseInt(s);
         for (int i = 2; i >= 0; i--) {
             int fig = this.FingerTable[i].finger.ID;
+            if(fig == -1){
+                continue;
+            }
             if (Node.belongTo(this.ID, id, fig, 00)) {
 //            if (fig > this.ID && fig < id) {
                 return this.FingerTable[i].finger;
@@ -359,9 +366,9 @@ public class Client implements Runnable {
                         + "finger[1] = " + me.node.FingerTable[1].finger + "\n"
                         + "finger[2] = " + me.node.FingerTable[2].finger + "\n"
                         + "predecessor = " + me.node.predecessor);
-                System.out.println((me.node.ID + 1 )+ "\t" + "[" + (me.node.ID + 1 )+ ", " + (me.node.ID + 1 + 1 )%8 + ")" + "\t" + me.node.FingerTable[0].finger.ID + "\n" +
-                                    (me.node.ID + 2 )+ "\t" + "[" + (me.node.ID + 2 )+ ", " +(me.node.ID + 2 + 2 )%8 +")" + "\t" + me.node.FingerTable[1].finger.ID + "\n" +
-                                    (me.node.ID + 4 )+ "\t" + "[" + (me.node.ID + 4 )+ ", " +(me.node.ID + 4 + 4 )%8 +")" + "\t" + me.node.FingerTable[2].finger.ID);
+                System.out.println((me.node.ID + 1 )%8+ "\t" + "[" + (me.node.ID + 1 )%8+ ", " + (me.node.ID + 1 + 1 )%8 + ")" + "\t" + me.node.FingerTable[0].finger.ID + "\n" +
+                                    (me.node.ID + 2 )%8+ "\t" + "[" + (me.node.ID + 2 )%8+ ", " +(me.node.ID + 2 + 2 )%8 +")" + "\t" + me.node.FingerTable[1].finger.ID + "\n" +
+                                    (me.node.ID + 4 )%8+ "\t" + "[" + (me.node.ID + 4 )%8+ ", " +(me.node.ID + 4 + 4 )%8 +")" + "\t" + me.node.FingerTable[2].finger.ID);
             }
         }
 
