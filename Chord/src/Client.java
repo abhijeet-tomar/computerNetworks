@@ -5,9 +5,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.*;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -26,6 +24,7 @@ class Node implements Runnable {
 //    Socket sock;
     Node predecessor;
     finger[] FingerTable;
+    List<Integer> keys;
 
     Node() {
 
@@ -43,7 +42,7 @@ class Node implements Runnable {
         ArrayList<Integer> arr = new ArrayList<>();
 
         for (int i = a + 1; i % 8 != b; i++) {
-            arr.add(i%8);
+            arr.add(i % 8);
         }
         switch (mode) {
             case 00:
@@ -80,6 +79,31 @@ class Node implements Runnable {
         System.out.println(Thread.currentThread().getName() + ": Successor set to " + getSuccessor().toString());
     }
 
+    synchronized public void askForKeys(Node x) {
+        try {
+            Socket sock = new Socket(x.IP, x.port);
+            PrintWriter pw = new PrintWriter(sock.getOutputStream());
+            Scanner sc = new Scanner(sock.getInputStream());
+            pw.println("getKeys");
+            pw.println(this.ID);
+            pw.flush();
+            String line = sc.nextLine();
+            System.out.println(Thread.currentThread().getName() + ": got response of askForKeys, keys are : " + line);
+            if(!line.equals("null")){
+                String [] arr = line.split(" ");
+                for (int i = 0; i < arr.length; i++) {
+                    this.keys.add(Integer.parseInt(arr[i]));
+                }
+            sc.close();
+            pw.close();
+            sock.close();
+            }
+        } catch (Exception e) {
+            System.out.println("Error in ask for keys");
+            e.printStackTrace();
+        }
+    }
+
     synchronized void create() {
         FingerTable = new finger[3];
         for (int i = 0; i < 3; i++) {
@@ -87,7 +111,12 @@ class Node implements Runnable {
         }
         predecessor = null;
         setSuccessor(this);
+        keys = Collections.synchronizedList(new LinkedList());
+        for (int i = 1; i <= 50; i++) {
+            keys.add(i);
+        }
     }
+
 
     synchronized void join(Node m) {
         predecessor = null;
@@ -98,9 +127,28 @@ class Node implements Runnable {
         FingerTable[1].finger.ID = -1;
         FingerTable[2].finger.ID = -1;
         setSuccessor(m.remotefindSuccessor(this.ID + ""));
-        
+        keys = Collections.synchronizedList(new LinkedList());
+        askForKeys(this.getSuccessor());
     }
 
+    public String getKeys(int id) {
+        String ret = "";
+        int x;
+        for (int i = 0 ; i < keys.size();i++) {
+            x = keys.get(i);
+            if(Node.belongTo(this.ID, id, keys.get(i)%8, 01)){
+                ret = ret + " " + x;
+                keys.remove(i);
+                i = i - 1;
+            }
+        }
+        if(!ret.equals(" ")){
+            return ret.substring(1);
+        } else {
+            return "null";
+        }
+    }
+    
     synchronized void stablize() {
         System.out.println(Thread.currentThread().getName() + ": Running Stablize");
         Node x = this.getSuccessor().remoteGetPredecessor();
@@ -231,7 +279,7 @@ class Node implements Runnable {
         int id = Integer.parseInt(s);
         for (int i = 2; i >= 0; i--) {
             int fig = this.FingerTable[i].finger.ID;
-            if(fig == -1){
+            if (fig == -1) {
                 continue;
             }
             if (Node.belongTo(this.ID, id, fig, 00)) {
@@ -362,13 +410,11 @@ public class Client implements Runnable {
         while (true) {
             String inp = sc.nextLine();
             if (inp.equals("1")) {
-                System.out.println("finger[0] = " + me.node.FingerTable[0].finger + "\n"
-                        + "finger[1] = " + me.node.FingerTable[1].finger + "\n"
-                        + "finger[2] = " + me.node.FingerTable[2].finger + "\n"
-                        + "predecessor = " + me.node.predecessor);
-                System.out.println((me.node.ID + 1 )%8+ "\t" + "[" + (me.node.ID + 1 )%8+ ", " + (me.node.ID + 1 + 1 )%8 + ")" + "\t" + me.node.FingerTable[0].finger.ID + "\n" +
-                                    (me.node.ID + 2 )%8+ "\t" + "[" + (me.node.ID + 2 )%8+ ", " +(me.node.ID + 2 + 2 )%8 +")" + "\t" + me.node.FingerTable[1].finger.ID + "\n" +
-                                    (me.node.ID + 4 )%8+ "\t" + "[" + (me.node.ID + 4 )%8+ ", " +(me.node.ID + 4 + 4 )%8 +")" + "\t" + me.node.FingerTable[2].finger.ID);
+                System.out.println("Node no. : " + me.node.ID + " predecossor : " + me.node.predecessor + "\tsuccessor : " + me.node.getSuccessor());
+                System.out.println((me.node.ID + 1) % 8 + "\t" + "[" + (me.node.ID + 1) % 8 + ", " + (me.node.ID + 1 + 1) % 8 + ")" + "\t" + me.node.FingerTable[0].finger.ID + "\n"
+                        + (me.node.ID + 2) % 8 + "\t" + "[" + (me.node.ID + 2) % 8 + ", " + (me.node.ID + 2 + 2) % 8 + ")" + "\t" + me.node.FingerTable[1].finger.ID + "\n"
+                        + (me.node.ID + 4) % 8 + "\t" + "[" + (me.node.ID + 4) % 8 + ", " + (me.node.ID + 4 + 4) % 8 + ")" + "\t" + me.node.FingerTable[2].finger.ID);
+                System.out.println("Keys : " + me.node.keys);
             }
         }
 
@@ -405,6 +451,11 @@ public class Client implements Runnable {
                     case "getPredecessor":
                         System.out.println(Thread.currentThread().getName() + ": new getPredecessor request received");
                         out.println(this.node.predecessor);
+                        out.flush();
+                        break;
+                    case "getKeys":
+                        System.out.println(Thread.currentThread().getName() + ": new getKeys request received");
+                        out.println(this.node.getKeys(Integer.parseInt(sc.nextLine())));
                         out.flush();
                         break;
                 }
