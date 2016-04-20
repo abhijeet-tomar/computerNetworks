@@ -18,6 +18,7 @@ import java.util.*;
  */
 class Node implements Runnable {
 
+    boolean stop;
     int ID;
     String IP;
     int port;
@@ -25,6 +26,14 @@ class Node implements Runnable {
     Node predecessor;
     finger[] FingerTable;
     List<Integer> keys;
+
+    synchronized boolean shouldStop() {
+        return this.stop;
+    }
+
+    synchronized void stop() {
+        this.stop = true;
+    }
 
     Node() {
 
@@ -89,14 +98,14 @@ class Node implements Runnable {
             pw.flush();
             String line = sc.nextLine();
             System.out.println(Thread.currentThread().getName() + ": got response of askForKeys, keys are : " + line);
-            if(!line.equals("null")){
-                String [] arr = line.split(" ");
+            if (!line.equals("null")) {
+                String[] arr = line.split(" ");
                 for (int i = 0; i < arr.length; i++) {
                     this.keys.add(Integer.parseInt(arr[i]));
                 }
-            sc.close();
-            pw.close();
-            sock.close();
+                sc.close();
+                pw.close();
+                sock.close();
             }
         } catch (Exception e) {
             System.out.println("Error in ask for keys");
@@ -117,7 +126,6 @@ class Node implements Runnable {
         }
     }
 
-
     synchronized void join(Node m) {
         predecessor = null;
         FingerTable = new finger[3];
@@ -134,21 +142,21 @@ class Node implements Runnable {
     public String getKeys(int id) {
         String ret = "";
         int x;
-        for (int i = 0 ; i < keys.size();i++) {
+        for (int i = 0; i < keys.size(); i++) {
             x = keys.get(i);
-            if(Node.belongTo(this.ID, id, keys.get(i)%8, 01)){
+            if (Node.belongTo(this.ID, id, keys.get(i) % 8, 01)) {
                 ret = ret + " " + x;
                 keys.remove(i);
                 i = i - 1;
             }
         }
-        if(!ret.equals(" ")){
+        if (!ret.equals(" ")) {
             return ret.substring(1);
         } else {
             return "null";
         }
     }
-    
+
     synchronized void stablize() {
         System.out.println(Thread.currentThread().getName() + ": Running Stablize");
         Node x = this.getSuccessor().remoteGetPredecessor();
@@ -189,6 +197,25 @@ class Node implements Runnable {
         } catch (Exception e) {
             System.out.println(Thread.currentThread().getName() + ": Exception in remoteGetPredecessor, returning null.");
             return null;
+        }
+    }
+
+    void sendKeys() {
+        try {
+            System.out.println("Sending keys to successor before leaving");
+            Socket sock = new Socket(this.FingerTable[0].finger.IP, this.FingerTable[0].finger.port);
+            PrintWriter pw = new PrintWriter(sock.getOutputStream());
+            pw.println("saveKeys");
+            for (int i = 0; i < this.keys.size() - 1; i++) {
+                pw.print(keys.get(i) + " ");
+            }
+            pw.println(this.keys.get(this.keys.size() - 1));
+            pw.flush();
+            pw.close();
+            sock.close();
+        } catch (Exception e) {
+            System.out.println("unable to transfer keys to the successor. Exiting");
+            e.printStackTrace();
         }
     }
 
@@ -307,6 +334,9 @@ class Node implements Runnable {
     public void run() {
         int next = 0;
         while (true) {
+            if (shouldStop()) {
+                return;
+            }
             try {
                 System.out.println(Thread.currentThread().getName() + ": Called stabilize");
                 this.stablize();
@@ -330,9 +360,18 @@ class Node implements Runnable {
 
 public class Client implements Runnable {
 
+    boolean stop;
     ServerSocket server;
     Node node;
     //keys array
+
+    synchronized boolean shouldStop() {
+        return this.stop;
+    }
+
+    synchronized void stop() {
+        this.stop = true;
+    }
 
     Client() {
         node = new Node();
@@ -374,18 +413,20 @@ public class Client implements Runnable {
 
     public static void main(String[] args) {
         Thread.currentThread().setName("main ");
+        Thread listener, client;
         Client me = new Client();
         System.out.println(Thread.currentThread().getName() + ": Enter the node ID:");
         Scanner sc = new Scanner(System.in);
         me.node.ID = Integer.parseInt(sc.nextLine());
-        if (me.node.ID == 0) {
+        System.out.println("for stand alone enter 1 : ");
+        if (Integer.parseInt(sc.nextLine()) == 1) {
             me.node.create();
-            Thread t = new Thread(me.node);
-            t.setName("Node Thread ");
-            t.start();
-            t = new Thread(me);
-            t.setName("listener ");
-            t.start();
+            client = new Thread(me.node);
+            client.setName("Node Thread ");
+            client.start();
+            listener = new Thread(me);
+            listener.setName("listener ");
+            listener.start();
         } else {
 //            me.node.create();
 //            me.node.predecessor = null;
@@ -400,12 +441,12 @@ public class Client implements Runnable {
                     + "finger[1] = " + me.node.FingerTable[1].finger + "\n"
                     + "finger[2] = " + me.node.FingerTable[2].finger + "\n"
                     + "predecessor = " + me.node.predecessor);
-            Thread t = new Thread(me.node);
-            t.setName("Node Thread ");
-            t.start();
-            t = new Thread(me);
-            t.setName("listener ");
-            t.start();
+            client = new Thread(me.node);
+            client.setName("Node Thread ");
+            client.start();
+            listener = new Thread(me);
+            listener.setName("listener ");
+            listener.start();
         }
         while (true) {
             String inp = sc.nextLine();
@@ -415,6 +456,18 @@ public class Client implements Runnable {
                         + (me.node.ID + 2) % 8 + "\t" + "[" + (me.node.ID + 2) % 8 + ", " + (me.node.ID + 2 + 2) % 8 + ")" + "\t" + me.node.FingerTable[1].finger.ID + "\n"
                         + (me.node.ID + 4) % 8 + "\t" + "[" + (me.node.ID + 4) % 8 + ", " + (me.node.ID + 4 + 4) % 8 + ")" + "\t" + me.node.FingerTable[2].finger.ID);
                 System.out.println("Keys : " + me.node.keys);
+            } else if (inp.equals("0")) {
+                try {
+                    me.node.stop();
+                    client.join();
+                    System.out.println("Stopped Node thread");
+                    me.stop();
+                    listener.join();
+                    System.out.println("Stopped listener.");
+                } catch (Exception e) {
+                    System.out.println("Cannot stop the node");
+                    e.printStackTrace();
+                }
             }
         }
 
@@ -425,6 +478,11 @@ public class Client implements Runnable {
         Scanner sc = null;
         PrintWriter out = null;
         while (true) {
+            if (this.shouldStop()) {
+                this.node.sendKeys();
+                System.out.println("Sent Keys to successor");
+                return;
+            }
             Socket s = null;
             try {
                 s = this.server.accept();
@@ -457,6 +515,16 @@ public class Client implements Runnable {
                         System.out.println(Thread.currentThread().getName() + ": new getKeys request received");
                         out.println(this.node.getKeys(Integer.parseInt(sc.nextLine())));
                         out.flush();
+                        break;
+                    case "saveKeys":
+                        System.out.println(Thread.currentThread().getName() + ": new saveKeys request received");
+                        x = sc.nextLine();
+                        System.out.println("New keys : " + x);
+                        String[] arr = x.split(" ");
+                        for (int i = 0; i < arr.length; i++) {
+                            this.node.keys.add(Integer.parseInt(arr[i]));
+                        }
+                        System.out.println("Added keys successfully");
                         break;
                 }
                 out.close();
